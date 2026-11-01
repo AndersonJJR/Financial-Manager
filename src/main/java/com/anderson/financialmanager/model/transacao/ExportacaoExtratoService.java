@@ -29,6 +29,9 @@ public class ExportacaoExtratoService {
     private static final String CSV_DELIMITER = ";";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final Locale LOCALE_PT_BR = Locale.of("pt", "BR");
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .build();
 
     private final TransacaoRepository transacaoRepository;
     private final ContaService contaService;
@@ -172,6 +175,10 @@ public class ExportacaoExtratoService {
             return "";
         }
         String limpo = valor.replace("\r", " ").replace("\n", " ");
+        // Mitigação de CSV Formula Injection (CWE-1236)
+        if (!limpo.isEmpty() && (limpo.startsWith("=") || limpo.startsWith("+") || limpo.startsWith("-") || limpo.startsWith("@") || limpo.startsWith("\t"))) {
+            limpo = "'" + limpo;
+        }
         if (limpo.contains(CSV_DELIMITER) || limpo.contains("\"")) {
             return "\"" + limpo.replace("\"", "\"\"") + "\"";
         }
@@ -179,9 +186,6 @@ public class ExportacaoExtratoService {
     }
 
     private byte[] gerarJsonPrettyPrinted(ExtratoExportacaoDto extrato) {
-        JsonMapper mapper = JsonMapper.builder()
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .build();
-        return mapper.writeValueAsBytes(extrato);
+        return JSON_MAPPER.writeValueAsBytes(extrato);
     }
 }

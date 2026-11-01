@@ -33,6 +33,9 @@ public class JwtService {
     }
 
     private SecretKey buildSecretKey(String secret) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("A chave de assinatura JWT ('security.jwt.secret') não foi configurada.");
+        }
         try {
             byte[] keyBytes = Decoders.BASE64.decode(secret);
             if (keyBytes.length >= 32) {
@@ -43,9 +46,9 @@ public class JwtService {
         }
         byte[] rawBytes = secret.getBytes(StandardCharsets.UTF_8);
         if (rawBytes.length < 32) {
-            byte[] padded = new byte[32];
-            System.arraycopy(rawBytes, 0, padded, 0, rawBytes.length);
-            return Keys.hmacShaKeyFor(padded);
+            throw new IllegalStateException(
+                    "A chave de assinatura JWT deve possuir no mínimo 256 bits (32 bytes). Tamanho atual: " + rawBytes.length + " bytes."
+            );
         }
         return Keys.hmacShaKeyFor(rawBytes);
     }

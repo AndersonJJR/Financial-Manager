@@ -4,8 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 application-dev.properties
+.env
 AGENTS.md
-documentation.md
 db/schema-postgresql.sql
 
 ### STS ###
