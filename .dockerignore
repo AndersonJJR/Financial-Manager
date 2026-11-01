@@ -1,0 +1,12 @@
+.git
+.gitignore
+.env
+.env.example
+target/
+documentation.md
+AGENTS.md
+db/
+*.md
+.idea/
+.vscode/
+*.iml
