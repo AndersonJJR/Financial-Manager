@@ -1,0 +1,65 @@
+services:
+  database:
+    image: mysql:8.4
+    container_name: financial-manager-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: financialmanager
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - financial-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: financial-manager-backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/financialmanager?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_SECRET: ${JWT_SECRET:-IsSlKOtqJoyZspRVl6CWflJ66w6ewIjqwOq38NlWeAS9BMpqy0B5kEZmZYYsrBJL}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      JWT_ISSUER: ${JWT_ISSUER:-financial-manager-api}
+    ports:
+      - "8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - financial-network
+
+  frontend:
+    build:
+      context: ../Financial-Manager-Interface
+      dockerfile: Dockerfile
+    container_name: financial-manager-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - financial-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  financial-network:
+    driver: bridge
