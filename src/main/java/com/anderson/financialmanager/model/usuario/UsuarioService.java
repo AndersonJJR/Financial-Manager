@@ -3,6 +3,7 @@ package com.anderson.financialmanager.model.usuario;
 import com.anderson.financialmanager.config.JwtService;
 import com.anderson.financialmanager.config.SecurityContextHelper;
 import com.anderson.financialmanager.exception.RegraDeNegocioException;
+import com.anderson.financialmanager.model.usuario.dto.AtualizarPerfilRequest;
 import com.anderson.financialmanager.model.usuario.dto.CadastroUsuarioRequest;
 import com.anderson.financialmanager.model.usuario.dto.LoginRequest;
 import com.anderson.financialmanager.model.usuario.dto.TokenResponse;
@@ -73,5 +74,32 @@ public class UsuarioService {
     public UsuarioResponse obterPerfilAutenticado() {
         Usuario usuario = securityContextHelper.obterUsuarioAutenticado();
         return UsuarioResponse.fromEntity(usuario);
+    }
+
+    @Transactional
+    public UsuarioResponse atualizarPerfil(AtualizarPerfilRequest request) {
+        Usuario usuarioAutenticado = securityContextHelper.obterUsuarioAutenticado();
+        Usuario usuario = usuarioRepository.findById(usuarioAutenticado.getId())
+                .orElseThrow(() -> new RegraDeNegocioException("Usuário não encontrado."));
+        usuario.setNome(request.nome().trim());
+        Usuario salvo = usuarioRepository.save(usuario);
+        return UsuarioResponse.fromEntity(salvo);
+    }
+
+    @Transactional
+    public void alterarSenha(com.anderson.financialmanager.model.usuario.dto.AlterarSenhaRequest request) {
+        Usuario usuarioAutenticado = securityContextHelper.obterUsuarioAutenticado();
+        Usuario usuario = usuarioRepository.findById(usuarioAutenticado.getId())
+                .orElseThrow(() -> new RegraDeNegocioException("Usuário não encontrado."));
+
+        if (!passwordEncoder.matches(request.senhaAtual(), usuario.getSenhaHash())) {
+            throw new RegraDeNegocioException("A senha atual informada está incorreta.");
+        }
+        if (request.senhaAtual().equals(request.novaSenha())) {
+            throw new RegraDeNegocioException("A nova senha deve ser diferente da senha atual.");
+        }
+
+        usuario.setSenhaHash(passwordEncoder.encode(request.novaSenha()));
+        usuarioRepository.save(usuario);
     }
 }

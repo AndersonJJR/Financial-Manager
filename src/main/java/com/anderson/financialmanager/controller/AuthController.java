@@ -1,6 +1,7 @@
 package com.anderson.financialmanager.controller;
 
 import com.anderson.financialmanager.model.usuario.UsuarioService;
+import com.anderson.financialmanager.model.usuario.dto.AtualizarPerfilRequest;
 import com.anderson.financialmanager.model.usuario.dto.CadastroUsuarioRequest;
 import com.anderson.financialmanager.model.usuario.dto.LoginRequest;
 import com.anderson.financialmanager.model.usuario.dto.TokenResponse;
@@ -41,5 +42,22 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<UsuarioResponse> obterPerfil() {
         return ResponseEntity.ok(usuarioService.obterPerfilAutenticado());
+    }
+
+    /**
+     * Atualiza os dados cadastrais (nome) do usuário atualmente autenticado.
+     */
+    @PutMapping("/me")
+    public ResponseEntity<UsuarioResponse> atualizarPerfil(@Valid @RequestBody AtualizarPerfilRequest request) {
+        return ResponseEntity.ok(usuarioService.atualizarPerfil(request));
+    }
+
+    /**
+     * Altera a senha do usuário atualmente autenticado.
+     */
+    @PutMapping("/alterar-senha")
+    public ResponseEntity<Void> alterarSenha(@Valid @RequestBody com.anderson.financialmanager.model.usuario.dto.AlterarSenhaRequest request) {
+        usuarioService.alterarSenha(request);
+        return ResponseEntity.noContent().build();
     }
 }
