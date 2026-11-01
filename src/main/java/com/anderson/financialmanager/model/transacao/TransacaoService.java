@@ -303,6 +303,10 @@ public class TransacaoService {
         Usuario usuario = securityContextHelper.obterUsuarioAutenticado();
         Transacao transacao = buscarEntidadeDoUsuario(id, usuario.getId());
 
+        if (transacao.getStatus() == StatusTransacao.CANCELADA) {
+            throw new RegraDeNegocioException("Não é permitido efetivar uma transação que se encontra cancelada.");
+        }
+
         transacao.setStatus(StatusTransacao.EFETIVADA);
         transacao.setDataPagamento(dataPagamento != null ? dataPagamento : LocalDate.now());
 
@@ -414,7 +418,7 @@ public class TransacaoService {
     }
 
     private LocalDate resolverDataPagamento(StatusTransacao status, LocalDate dataPagamento, LocalDate dataCompetencia) {
-        if (status == StatusTransacao.CANCELADA) {
+        if (status == StatusTransacao.CANCELADA || status == StatusTransacao.PENDENTE) {
             return null;
         }
         if (status == StatusTransacao.EFETIVADA && dataPagamento == null) {

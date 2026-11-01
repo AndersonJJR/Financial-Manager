@@ -17,8 +17,16 @@ public class ValidadorConsistenciaStatusPagamento implements ValidadorTransacao 
             throw new RegraDeNegocioException("O valor da transação deve ser estritamente positivo.");
         }
 
+        if (transacao.getStatus() == StatusTransacao.PENDENTE && transacao.getDataPagamento() != null) {
+            throw new RegraDeNegocioException("Uma transação com status PENDENTE não pode possuir data de pagamento.");
+        }
+
         if (transacao.getStatus() == StatusTransacao.CANCELADA && transacao.getDataPagamento() != null) {
             throw new RegraDeNegocioException("Uma transação cancelada não pode possuir data de pagamento/efetivação.");
+        }
+
+        if (transacao.getStatus() == StatusTransacao.EFETIVADA && transacao.getDataPagamento() == null) {
+            throw new RegraDeNegocioException("Uma transação com status EFETIVADA deve possuir data de pagamento.");
         }
 
         if (transacao.getModalidade() == ModalidadeTransacao.PARCELADA) {

@@ -25,8 +25,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TransacaoServiceTest {
@@ -282,5 +283,55 @@ class TransacaoServiceTest {
         String jsonContent = new String(jsonBytes, StandardCharsets.UTF_8);
         assertTrue(jsonContent.contains("\"descricao\" : \"Assinatura Cloud\""));
         assertTrue(jsonContent.contains("\"totalDespesas\" : 89.90"));
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar efetivação de uma transação cancelada")
+    void deveRejeitarEfetivacaoDeTransacaoCancelada() {
+        when(securityContextHelper.obterUsuarioAutenticado()).thenReturn(usuarioPadrao);
+
+        Transacao cancelada = Transacao.builder()
+                .id(UUID.randomUUID())
+                .descricao("Compra cancelada")
+                .valor(new BigDecimal("100.00"))
+                .dataCompetencia(LocalDate.now())
+                .tipo(TipoTransacao.DESPESA)
+                .status(StatusTransacao.CANCELADA)
+                .conta(contaPadrao)
+                .categoria(categoriaDespesa)
+                .usuario(usuarioPadrao)
+                .build();
+
+        when(transacaoRepository.findByIdAndUsuarioIdWithDetails(cancelada.getId(), usuarioPadrao.getId()))
+                .thenReturn(java.util.Optional.of(cancelada));
+
+        assertThrows(RegraDeNegocioException.class, () -> transacaoService.efetivar(cancelada.getId(), LocalDate.now()));
+        verify(transacaoRepository, never()).save(any(Transacao.class));
+    }
+
+    @Test
+    @DisplayName("Deve garantir que transação PENDENTE tenha data de pagamento nula mesmo se enviada no request")
+    void deveGarantirDataPagamentoNulaEmTransacaoPendente() {
+        when(securityContextHelper.obterUsuarioAutenticado()).thenReturn(usuarioPadrao);
+        when(contaService.buscarEntidadeDoUsuario(contaPadrao.getId(), usuarioPadrao.getId())).thenReturn(contaPadrao);
+        when(categoriaService.buscarEntidadeDoUsuario(categoriaDespesa.getId(), usuarioPadrao.getId())).thenReturn(categoriaDespesa);
+        when(transacaoRepository.save(any(Transacao.class))).thenAnswer(i -> i.getArgument(0));
+
+        TransacaoRequest request = new TransacaoRequest(
+                "Fatura Futura",
+                new BigDecimal("200.00"),
+                LocalDate.of(2026, 12, 10),
+                LocalDate.of(2026, 12, 10), // enviou data de pagamento
+                TipoTransacao.DESPESA,
+                StatusTransacao.PENDENTE, // mas status é PENDENTE
+                contaPadrao.getId(),
+                categoriaDespesa.getId(),
+                null
+        );
+
+        TransacaoResponse response = transacaoService.criar(request);
+
+        assertEquals(StatusTransacao.PENDENTE, response.status());
+        assertNull(response.dataPagamento());
     }
 }

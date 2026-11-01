@@ -86,4 +86,25 @@ public interface TransacaoRepository extends JpaRepository<Transacao, UUID> {
             @Param("usuarioId") UUID usuarioId,
             @Param("grupoId") UUID grupoId
     );
+
+    @Query("""
+            SELECT COALESCE(SUM(CASE WHEN t.tipo = com.anderson.financialmanager.model.transacao.TipoTransacao.RECEITA THEN t.valor ELSE -t.valor END), 0)
+            FROM Transacao t
+            WHERE t.conta.id = :contaId
+              AND t.usuario.id = :usuarioId
+              AND t.status = com.anderson.financialmanager.model.transacao.StatusTransacao.EFETIVADA
+            """)
+    java.math.BigDecimal calcularSaldoTransacoesEfetivadasDaConta(
+            @Param("contaId") UUID contaId,
+            @Param("usuarioId") UUID usuarioId
+    );
+
+    @Query("""
+            SELECT t.conta.id, COALESCE(SUM(CASE WHEN t.tipo = com.anderson.financialmanager.model.transacao.TipoTransacao.RECEITA THEN t.valor ELSE -t.valor END), 0)
+            FROM Transacao t
+            WHERE t.usuario.id = :usuarioId
+              AND t.status = com.anderson.financialmanager.model.transacao.StatusTransacao.EFETIVADA
+            GROUP BY t.conta.id
+            """)
+    List<Object[]> calcularSaldoTransacoesPorContaDoUsuario(@Param("usuarioId") UUID usuarioId);
 }
