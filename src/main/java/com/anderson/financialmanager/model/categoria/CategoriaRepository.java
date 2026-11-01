@@ -13,9 +13,15 @@ public interface CategoriaRepository extends JpaRepository<Categoria, UUID> {
 
     List<Categoria> findAllByUsuarioIdOrderByNomeAsc(UUID usuarioId);
 
+    List<Categoria> findAllByUsuarioIdAndAtivaOrderByNomeAsc(UUID usuarioId, Boolean ativa);
+
     List<Categoria> findAllByUsuarioIdAndTipoOrderByNomeAsc(UUID usuarioId, TipoTransacao tipo);
 
+    List<Categoria> findAllByUsuarioIdAndTipoAndAtivaOrderByNomeAsc(UUID usuarioId, TipoTransacao tipo, Boolean ativa);
+
     Optional<Categoria> findByIdAndUsuarioId(UUID id, UUID usuarioId);
+
+    Optional<Categoria> findByUsuarioIdAndNomeIgnoreCaseAndTipo(UUID usuarioId, String nome, TipoTransacao tipo);
 
     boolean existsByUsuarioIdAndNomeIgnoreCaseAndTipo(UUID usuarioId, String nome, TipoTransacao tipo);
 }

@@ -13,6 +13,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "categorias", indexes = {
         @Index(name = "idx_categorias_usuario_id", columnList = "usuario_id")
+}, uniqueConstraints = {
+        @UniqueConstraint(name = "uk_categorias_usuario_nome_tipo", columnNames = {"usuario_id", "nome", "tipo"})
 })
 @Getter
 @Setter

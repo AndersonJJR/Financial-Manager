@@ -35,13 +35,14 @@ public class CategoriaController {
     }
 
     /**
-     * Lista todas as categorias do usuário autenticado, permitindo filtro opcional por tipo (RECEITA ou DESPESA).
+     * Lista as categorias do usuário autenticado, com filtros opcionais por tipo (RECEITA/DESPESA) e status ativo/inativo.
      */
     @GetMapping
     public ResponseEntity<List<CategoriaResponse>> listarTodas(
-            @RequestParam(required = false) TipoTransacao tipo
+            @RequestParam(required = false) TipoTransacao tipo,
+            @RequestParam(required = false) Boolean ativa
     ) {
-        return ResponseEntity.ok(categoriaService.listarTodas(tipo));
+        return ResponseEntity.ok(categoriaService.listarTodas(tipo, ativa));
     }
 
     /**
