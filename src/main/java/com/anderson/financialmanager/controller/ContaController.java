@@ -34,11 +34,13 @@ public class ContaController {
     }
 
     /**
-     * Lista todas as contas pertencentes ao usuário autenticado.
+     * Lista as contas pertencentes ao usuário autenticado, com filtro opcional por status ativo/inativo.
      */
     @GetMapping
-    public ResponseEntity<List<ContaResponse>> listarTodas() {
-        return ResponseEntity.ok(contaService.listarTodas());
+    public ResponseEntity<List<ContaResponse>> listarTodas(
+            @RequestParam(required = false) Boolean ativa
+    ) {
+        return ResponseEntity.ok(contaService.listarTodas(ativa));
     }
 
     /**

@@ -12,7 +12,11 @@ public interface ContaRepository extends JpaRepository<Conta, UUID> {
 
     List<Conta> findAllByUsuarioIdOrderByNomeAsc(UUID usuarioId);
 
+    List<Conta> findAllByUsuarioIdAndAtivaOrderByNomeAsc(UUID usuarioId, Boolean ativa);
+
     Optional<Conta> findByIdAndUsuarioId(UUID id, UUID usuarioId);
+
+    Optional<Conta> findByUsuarioIdAndNomeIgnoreCase(UUID usuarioId, String nome);
 
     boolean existsByUsuarioIdAndNomeIgnoreCase(UUID usuarioId, String nome);
 }

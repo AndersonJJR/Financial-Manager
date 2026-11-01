@@ -13,17 +13,23 @@ public record ContaResponse(
         String instituicao,
         TipoConta tipo,
         BigDecimal saldoInicial,
+        BigDecimal saldoAtual,
         Boolean ativa,
         LocalDateTime criadoEm,
         LocalDateTime atualizadoEm
 ) {
     public static ContaResponse fromEntity(Conta conta) {
+        return fromEntity(conta, conta.getSaldoInicial());
+    }
+
+    public static ContaResponse fromEntity(Conta conta, BigDecimal saldoAtual) {
         return new ContaResponse(
                 conta.getId(),
                 conta.getNome(),
                 conta.getInstituicao(),
                 conta.getTipo(),
                 conta.getSaldoInicial(),
+                saldoAtual != null ? saldoAtual : conta.getSaldoInicial(),
                 conta.getAtiva(),
                 conta.getCriadoEm(),
                 conta.getAtualizadoEm()
